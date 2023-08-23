@@ -1,0 +1,11 @@
+/.vscode
+/CACert.pem
+/ClientCert.pem
+/ECPrivateKey.pem
+/README (10).pdf
+/README (11).txt
+/challenge (10).pem
+/make_connection.ipynb
+/make_connection.py
+/parallel_loops_in_python.zip
+/separatekeys.ipynb
