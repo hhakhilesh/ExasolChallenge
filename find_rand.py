@@ -2,22 +2,23 @@ import string
 import random
 import hashlib
 import cProfile
-from multiprocessing import Pool, cpu_count
+import time
+from multiprocessing import Pool, cpu_count, Process, Manager
 
 def generate_str(str_len):
     chars = string.ascii_letters + string.digits
     return ''.join(random.choice(chars)for _ in range(str_len))
 
 def checkhash_p1():
-    prefix = '0'*3
+    prefix = '0'*4
     fixed_str = 'zesTjyNDXrGJYByPVojNByVOkqdWtDCLvCuGeoyiMmalsbibNDPdwvMzNwhXRtbU'
     while True:
         rand_str = generate_str(16)
         data = (fixed_str + rand_str).encode('utf-8')
         hash = hashlib.sha1(data).hexdigest()
         if hash.startswith(prefix):
-            print(hash)
-            print(rand_str)
+            # print(hash)
+            # print(rand_str)
             break
 
 def gen_and_check(fixed_str,prefix,str_len):
@@ -31,6 +32,21 @@ def gen_and_check(fixed_str,prefix,str_len):
             break
             
     return hash, rand_str
+
+def gen_and_check_parallel(fixed_str,prefix,str_len,return_dict,process_index):
+    while True:
+        rand_str = generate_str(str_len)
+        data = (fixed_str + rand_str).encode('utf-8')
+        hash = hashlib.sha1(data).hexdigest()
+        if hash.startswith(prefix):
+            # print(hash)
+            # print(rand_str)
+            break
+            
+    return_dict[str(process_index)] =[hash, rand_str]
+
+def psuedo_tt():
+    time.sleep(10)
     
 def checkhash_p2():
     
@@ -38,21 +54,49 @@ def checkhash_p2():
     prefix = '0'*5
     str_len = 16
     num_process = cpu_count()
-    pool = Pool(processes=num_process-6)
-    args_list = (fixed_str,prefix,str_len)
+    manager = Manager()
+    return_dict = manager.dict()
     
-    results =[]
-    for j in range(num_process-6):
-        result=pool.apply(gen_and_check,args_list)
-        results.append(result)
+    # pool = Pool(processes=num_process)
+
+    args_list = [fixed_str,prefix,str_len,return_dict,0]
+    # args_lists = [(fixed_str,prefix,str_len) for _ in range(num_process)]
+    results=[]
+    # for j in range(num_process-6):
+    #     result=pool.apply(gen_and_check,args_lists)
+    #     results.append(result)
     
-    pool.close()
-    pool.join()
+    # for j in range(num_process):
+    #     result= pool.apply_async(gen_and_check,args_list)
+    #     results.append(result)
+    # 
+    # print(results)    
+    # print(results[1].ready())
+    ProcessList =[]
+    for j in range(num_process):
+        args_list[-1] = j
+        ProcessList.append(Process(target=gen_and_check_parallel,args=args_list))
+        ProcessList[j].start()
+
+    while True:
+        
+        exitcodes=[]
+        
+        for process in ProcessList:
+            exitcodes.append(process.exitcode)
+
+        if 0 in exitcodes:
+            break
+
+    hash, random_str = return_dict[str(exitcodes.index(0))]
+    print(hash,random_str)
     
-    
+    for process in ProcessList:
+        process.terminate()
+        
 def main():
-    for j in range(1):
+    for j in range(20):
         checkhash_p2()
 
-
-cProfile.run('main()',sort='tottime')
+if __name__ == "__main__":
+    cProfile.run('main()',sort='tottime')
