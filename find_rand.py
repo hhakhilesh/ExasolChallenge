@@ -51,37 +51,22 @@ def psuedo_tt():
 def checkhash_p2():
     
     fixed_str = 'zesTjyNDXrGJYByPVojNByVOkqdWtDCLvCuGeoyiMmalsbibNDPdwvMzNwhXRtbU'
-    prefix = '0'*5
+    prefix = '0'*3
     str_len = 16
     num_process = cpu_count()
     manager = Manager()
     return_dict = manager.dict()
     
-    # pool = Pool(processes=num_process)
-
     args_list = [fixed_str,prefix,str_len,return_dict,0]
-    # args_lists = [(fixed_str,prefix,str_len) for _ in range(num_process)]
-    results=[]
-    # for j in range(num_process-6):
-    #     result=pool.apply(gen_and_check,args_lists)
-    #     results.append(result)
     
-    # for j in range(num_process):
-    #     result= pool.apply_async(gen_and_check,args_list)
-    #     results.append(result)
-    # 
-    # print(results)    
-    # print(results[1].ready())
     ProcessList =[]
     for j in range(num_process):
         args_list[-1] = j
         ProcessList.append(Process(target=gen_and_check_parallel,args=args_list))
         ProcessList[j].start()
 
-    while True:
-        
+    while True:    
         exitcodes=[]
-        
         for process in ProcessList:
             exitcodes.append(process.exitcode)
 
